@@ -13,8 +13,6 @@ const patternFor = count => {
 }
 
 const Swatch = ({ count, hrepeat, vrepeat, block_size }) => {
-  console.log('rendering', count, hrepeat, vrepeat)
-
   const pattern = repeat(
     mirror(_.times(count, () => repeat(patternFor(count), hrepeat))),
     vrepeat
