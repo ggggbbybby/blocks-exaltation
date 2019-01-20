@@ -5,16 +5,15 @@ import Layout from '../components/layout'
 import Blocks from '../components/blocks'
 import SEO from '../components/seo'
 
-const BlocksPage = ({count = 4}) => (
+const BlocksPage = ({ count = 4 }) => (
   <Layout>
-    <SEO title="Home" keywords={[`gatsby`, `application`, `react`]} />
+    <SEO title="Blocks" keywords={[`gatsby`, `application`, `react`]} />
     <h3>You're probably looking for blocks.</h3>
     <p>Remember: all designs are beautiful unless proven otherwise.</p>
-    
+
     <div style={{ maxWidth: `300px`, marginBottom: `1.45rem` }}>
-      <Blocks count={count}/>
+      <Blocks count={count} />
     </div>
-    <Link to="/blocks/">See more blocks</Link>
   </Layout>
 )
 
