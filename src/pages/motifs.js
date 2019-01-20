@@ -2,21 +2,21 @@ import React from 'react'
 import { Link } from 'gatsby'
 
 import Layout from '../components/layout'
-import Blocks from '../components/blocks'
+import Motif from '../components/motif'
 import SEO from '../components/seo'
 
-const BlocksPage = ({ count = 4 }) => (
+const MotifsPage = ({ count = 4 }) => (
   <Layout>
-    <SEO title="Blocks" keywords={[`gatsby`, `application`, `react`]} />
+    <SEO title="Motifs" keywords={[`gatsby`, `application`, `react`]} />
     <nav>
-      <Link to="/motifs/">See some Motifs</Link>
+        <Link to="/blocks/">See some blocks</Link>
     </nav>
     <p>Remember: all designs are beautiful unless proven otherwise.</p>
 
     <div style={{marginBottom: `1.45rem` }}>
-      <Blocks count={count} />
+      <Motif />
     </div>
   </Layout>
 )
 
-export default BlocksPage
+export default MotifsPage
