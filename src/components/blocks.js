@@ -2,23 +2,26 @@ import React from 'react'
 import _ from 'lodash'
 import { Link } from 'gatsby'
 
-const mirror = array => array.slice().concat(array.reverse().slice(1));
-const repeat = (array, times) => _.flatten(Array(times).fill(array));
+const mirror = array => array.slice().concat(array.reverse().slice(1))
+const repeat = (array, times) => _.flatten(Array(times).fill(array))
 
 const patternFor = count => {
-  const max = 2 ** count;
-  const seed = Math.floor(Math.random() * Math.floor(max));
-  const binary = seed.toString(2).padStart(count, '0');
-  return mirror(Array.from(binary));
-};
+  const max = 2 ** count
+  const seed = Math.floor(Math.random() * Math.floor(max))
+  const binary = seed.toString(2).padStart(count, '0')
+  return mirror(Array.from(binary))
+}
 
 const Swatch = ({ count, hrepeat, vrepeat, block_size }) => {
-  console.log("rendering", count, hrepeat, vrepeat);
+  console.log('rendering', count, hrepeat, vrepeat)
 
-  const pattern = repeat(mirror(_.times(count, () => repeat(patternFor(count), hrepeat))), vrepeat);
+  const pattern = repeat(
+    mirror(_.times(count, () => repeat(patternFor(count), hrepeat))),
+    vrepeat
+  )
 
-  const height = pattern.length;
-  const width = pattern[0].length;
+  const height = pattern.length
+  const width = pattern[0].length
 
   return (
     <svg height={height * block_size + 5} width={width * block_size + 5}>
@@ -30,80 +33,82 @@ const Swatch = ({ count, hrepeat, vrepeat, block_size }) => {
             y={row * block_size}
             height={block_size}
             width={block_size}
-            fill={val === "0" ? "transparent" : "black"}
+            fill={val === '0' ? 'transparent' : 'black'}
             stroke="#888"
             strokeWidth="2"
           />
-        )
         ))
-      }
+      )}
     </svg>
   )
 }
 
 class Blocks extends React.Component {
   constructor({ count = 5, hrepeat = 2, vrepeat = 2, block_size = 10 }) {
-    super();
-    this.state = { count, hrepeat, vrepeat, block_size };
+    super()
+    this.state = { count, hrepeat, vrepeat, block_size }
+  }
+
+  decrement(field) {
+    this.setState({
+      ...this.state,
+      [field]: Math.max(this.state[field] - 1, 1),
+    })
+  }
+
+  increment(field) {
+    this.setState({
+      ...this.state,
+      [field]: Math.min(this.state[field] + 1, 20),
+    })
   }
 
   render() {
     return (
-      <div style={{ display: "flex" }}>
-        <form style={{ minWidth: "11em", paddingRight: "1em" }}>
-          <label>
-            Number of Blocks:
-          <input
-              type="number"
-              style={{ width: "100%" }}
-              value={this.state.count}
-              min={2}
-              max={10}
-              onChange={event => this.setState({ ...this.state, count: parseInt(event.target.value) })} />
-          </label>
+      <div style={{ display: 'flex' }}>
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between'}}>
+            <div>Number of Blocks:</div>
+            <span style={{ minWidth: '4em', textAlign: 'right' }}>
+              <button onClick={() => this.decrement('count')}>-</button>
+              {this.state.count}
+              <button onClick={() => this.increment('count')}>+</button>
+            </span>
+          </div>
 
-          <label >
-            Horizontal Repeats:
-            <input
-              type="number"
-              style={{ width: "100%" }}
-              value={this.state.hrepeat}
-              min={1}
-              max={10}
-              onChange={event => this.setState({ ...this.state, hrepeat: parseInt(event.target.value) })} />
-          </label>
-
-          <label >
-            Vertical Repeats:
-            <input
-              type="number"
-              style={{ width: "100%" }}
-              value={this.state.vrepeat}
-              min={1}
-              max={10}
-              onChange={event => this.setState({ ...this.state, vrepeat: parseInt(event.target.value) })} />
-          </label>
-          <label >
-            Block Size (in pixels):
-            <input
-              type="number"
-              style={{ width: "100%" }}
-              value={this.state.block_size}
-              min={5}
-              max={25}
-              step={5}
-              onChange={event => this.setState({ ...this.state, block_size: parseInt(event.target.value) })} />
-          </label>
-
+          <div style={{ display: 'flex', justifyContent: 'space-between'}}>
+            <div>Horizontal Repeats:</div>
+            <span style={{ minWidth: '4em', textAlign: 'right' }}>
+              <button onClick={() => this.decrement('hrepeat')}>-</button>
+              {this.state.hrepeat}
+              <button onClick={() => this.increment('hrepeat')}>+</button>
+            </span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between'}}>
+            <div>Vertical Repeats:</div>
+            <span style={{ minWidth: '4em', textAlign: 'right' }}>
+              <button onClick={() => this.decrement('vrepeat')}>-</button>
+              {this.state.vrepeat}
+              <button onClick={() => this.increment('vrepeat')}>+</button>
+            </span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between'}}>
+            <div>Block Size:</div>
+            <span style={{ minWidth: '5em', textAlign: 'right' }}>
+              <button onClick={() => this.decrement('block_size')}>-</button>
+              {this.state.block_size}
+              <button onClick={() => this.increment('block_size')}>+</button>
+            </span>
+          </div>
           <Link to="/blocks/">Refresh</Link>
-        </form>
-        <div style={{ flex: "1" }}>
-          <Swatch {...this.state} />
         </div>
 
-      </div>);
+        <div style={{ flex: '1' }}>
+          <Swatch {...this.state} />
+        </div>
+      </div>
+    )
   }
 }
-
 
 export default Blocks
