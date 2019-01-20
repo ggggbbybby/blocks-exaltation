@@ -64,7 +64,7 @@ class Blocks extends React.Component {
   render() {
     return (
       <div style={{ display: 'flex' }}>
-        <div>
+        <div style={{paddingRight: 10}}>
           <div style={{ display: 'flex', justifyContent: 'space-between'}}>
             <div>Number of Blocks:</div>
             <span style={{ minWidth: '4em', textAlign: 'right' }}>
