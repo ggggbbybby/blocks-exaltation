@@ -1,10 +1,15 @@
 import React from 'react'
 import _ from 'lodash'
-import { Link } from 'gatsby'
 
 import Swatch from './swatch'
 
-const mirror = array => array.slice().concat(array.reverse().slice(1))
+const mirror = array =>
+  array.slice().concat(
+    array
+      .slice()
+      .reverse()
+      .slice(1)
+  )
 
 const threebythree = symmetrical => {
   // generate a binary number between "0000" and "1111"
@@ -19,47 +24,145 @@ const threebythree = symmetrical => {
   return [row1, row2, row1]
 }
 
-const Motif = () => {
-  // a motif is a 15x15 block pattern that follows certain symmetrical rules
-  // blocks along the diagonal (numbers) must exhibit 4-way symmetry while other blocks can have either 2- or 4-way symmetry.
-  // 3 C B C 3
-  // C 2 A 2 C
-  // B A 1 A B
-  // C 2 A 2 C
-  // 3 C B C 3
+class Motif extends React.Component {
+  constructor(props) {
+    super(props)
+    const block_count = props.block_count || 3
+    this.state = {
+      block_count: block_count,
+      pattern: this.generatePattern(block_count),
+      hrepeat: 1,
+      vrepeat: 1,
+      block_size: 10,
+    }
+  }
 
-  const [blockA, blockB, blockC] = _.times(3, threebythree)
-  const [block1, block2, block3] = _.times(3, () => threebythree(true))
-  const pattern = [
-    [block3[0], blockC[0], blockB[0], blockC[0], block3[0]],
-    [block3[1], blockC[1], blockB[1], blockC[1], block3[1]],
-    [block3[2], blockC[2], blockB[2], blockC[2], block3[2]],
+  generatePattern(block_count) {
+    // a motif is a square pattern of blocks that follows certain symmetrical rules
+    // blocks along the diagonal (numbers) must exhibit 4-way symmetry while other blocks can have either 2- or 4-way symmetry.
 
-    [blockC[0], block2[0], blockA[0], block2[0], blockC[0]],
-    [blockC[1], block2[1], blockA[1], block2[1], blockC[1]],
-    [blockC[2], block2[2], blockA[2], block2[2], blockC[2]],
+    // generalized pattern
+    // s0 f0 f1 f2
+    // *0 s1 f3 f4
+    // *1 *3 s2 f5
+    // *2 *4 *5 s3
 
-    [blockB[0], blockA[0], block1[0], blockA[0], blockB[0]],
-    [blockB[1], blockA[1], block1[1], blockA[1], blockB[1]],
-    [blockB[2], blockA[2], block1[2], blockA[2], blockB[2]],
+    const filler_count = (block_count ** 2 - block_count) / 2
+    const filler = _.times(filler_count, threebythree)
+    const diagonals = _.times(block_count, () => threebythree(block_count > 1))
 
-    [blockC[0], block2[0], blockA[0], block2[0], blockC[0]],
-    [blockC[1], block2[1], blockA[1], block2[1], blockC[1]],
-    [blockC[2], block2[2], blockA[2], block2[2], blockC[2]],
+    const blocks = []
+    for (let i = 0; i < block_count; i++) {
+      const row = []
+      for (let j = 0; j < block_count; j++) {
+        if (i < j) row[j] = filler.pop()
+        if (i === j) row[j] = diagonals.pop()
+        if (i > j) row[j] = blocks[j][i]
+      }
+      blocks[i] = mirror(row)
+    }
+    const flat_blocks = mirror(blocks).map(block_row => {
+      // block_row is a row of 3x3s
+      // it should return a three element array
+      return _.times(3, idx => _.flatMap(block_row, block => block[idx]))
+    })
 
-    [block3[0], blockC[0], blockB[0], blockC[0], block3[0]],
-    [block3[1], blockC[1], blockB[1], blockC[1], block3[1]],
-    [block3[2], blockC[2], blockB[2], blockC[2], block3[2]],
-  ].map(_.flatten)
+    return _.flatten(flat_blocks)
+  }
 
-  return (
-    <div>
-      <Swatch pattern={pattern} block_size={10} hrepeat={2} vrepeat={2} />
+  incrementBlockCountAndRefresh(delta = 1) {
+    const block_count = Math.max(1, this.state.block_count + delta)
+    this.setState({
+      ...this.state,
+      block_count,
+      pattern: this.generatePattern(block_count),
+    })
+  }
+
+  increment(field, delta = 1) {
+    this.setState({
+      ...this.state,
+      [field]: Math.max(1, this.state[field] + delta),
+    })
+  }
+
+  onFrameClick({ row, col, del }) {
+    const clickAt = (arr, idx) =>
+      del
+        ? arr.slice(0, idx).concat(arr.slice(idx + 1))
+        : arr.slice(0, idx + 1).concat(arr.slice(idx))
+    if (row != null) {
+      const length = this.state.pattern.length
+      const pattern = clickAt(this.state.pattern, row % length)
+      this.setState({ ...this.state, pattern: pattern })
+    }
+
+    if (col != null) {
+      const width = this.state.pattern[0].length
+      const pattern = this.state.pattern.map(row => clickAt(row, col % width))
+      this.setState({ ...this.state, pattern: pattern })
+    }
+  }
+
+  render() {
+    // a motif is a square pattern of blocks that follows certain symmetrical rules
+    // blocks along the diagonal (numbers) must exhibit 4-way symmetry while other blocks can have either 2- or 4-way symmetry.
+
+    // generalized pattern
+    // s0 f0 f1 f2
+    // f0 s1 f3 f4
+    // f1 f3 s2 f5
+    // f2 f4 f5 s3
+
+    return (
       <div>
-        <Link to="/motifs/">More Motifs</Link>
+        <div>
+          <Swatch {...this.state} frameClick={pos => this.onFrameClick(pos)} />
+        </div>
+
+        <div>
+          <div>
+            Block Count:{' '}
+            <button onClick={() => this.incrementBlockCountAndRefresh(-1)}>
+              -
+            </button>{' '}
+            {this.state.block_count * 2}{' '}
+            <button onClick={() => this.incrementBlockCountAndRefresh()}>
+              +
+            </button>
+          </div>{' '}
+          <div>
+            hrepeat:{' '}
+            <button onClick={() => this.increment('hrepeat', -1)}>-</button>{' '}
+            {this.state.hrepeat}{' '}
+            <button onClick={() => this.increment('hrepeat')}>+</button>
+          </div>{' '}
+          <div>
+            vrepeat:{' '}
+            <button onClick={() => this.increment('vrepeat', -1)}>-</button>{' '}
+            {this.state.vrepeat}{' '}
+            <button onClick={() => this.increment('vrepeat')}>+</button>
+          </div>{' '}
+          <div>
+            block_size:{' '}
+            <button onClick={() => this.increment('block_size', -1)}>-</button>{' '}
+            {this.state.block_size}{' '}
+            <button onClick={() => this.increment('block_size')}>+</button>
+          </div>
+          <button
+            onClick={() =>
+              this.setState({
+                ...this.state,
+                pattern: this.generatePattern(this.state.block_count),
+              })
+            }
+          >
+            Refresh
+          </button>
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 }
 
 export default Motif
