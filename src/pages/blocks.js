@@ -16,6 +16,8 @@ const BlocksPage = ({ count = 4 }) => (
     <div style={{marginBottom: `1.45rem` }}>
       <Blocks count={count} />
     </div>
+
+    <p>Click on the blue boxes to duplicate a row or column. Control-Click (or Command-Click) to remove.</p>
   </Layout>
 )
 

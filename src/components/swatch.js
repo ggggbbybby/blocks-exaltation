@@ -3,7 +3,24 @@ import _ from 'lodash'
 
 const repeat = (array, times) => _.flatten(Array(times).fill(array))
 
-const Swatch = ({ pattern, block_size, hrepeat, vrepeat, frameClick }) => {
+const onFrameClick = ({row, col, del, pattern}) => {
+  const clickAt = (arr, idx) =>
+    del
+      ? arr.slice(0, idx).concat(arr.slice(idx + 1))
+      : arr.slice(0, idx + 1).concat(arr.slice(idx))
+  if (row != null) {
+    const length = pattern.length
+    return clickAt(pattern, row % length)
+  }
+
+  if (col != null) {
+    const width = pattern[0].length
+    return pattern.map(row => clickAt(row, col % width))
+  }
+}
+
+
+const Swatch = ({ pattern, block_size, hrepeat, vrepeat, updatePattern }) => {
   const expanded_pattern = repeat(
     pattern.map(row => repeat(row, hrepeat)),
     vrepeat
@@ -38,13 +55,13 @@ const Swatch = ({ pattern, block_size, hrepeat, vrepeat, frameClick }) => {
       {_.times(rows, row =>
         rect(row, cols, 'frame', block_size, event => {
           event.preventDefault()
-          frameClick({ row: row, del: event.ctrlKey })
+          updatePattern(onFrameClick({ pattern, row, del: event.ctrlKey }))
         })
       )}
       {_.times(cols, col =>
         rect(rows, col, 'frame', block_size, event => {
           event.preventDefault()
-          frameClick({ col: col, del: event.ctrlKey })
+          updatePattern(onFrameClick({ pattern, col, del: event.ctrlKey }))
         })
       )}
     </svg>

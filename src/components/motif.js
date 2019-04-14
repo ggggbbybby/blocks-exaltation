@@ -2,6 +2,7 @@ import React from 'react'
 import _ from 'lodash'
 
 import Swatch from './swatch'
+import Form from './form'
 
 const mirror = array =>
   array.slice().concat(
@@ -70,38 +71,54 @@ class Motif extends React.Component {
     return _.flatten(flat_blocks)
   }
 
-  incrementBlockCountAndRefresh(delta = 1) {
-    const block_count = Math.max(1, this.state.block_count + delta)
-    this.setState({
-      ...this.state,
-      block_count,
-      pattern: this.generatePattern(block_count),
-    })
+  increment(field, delta, refresh=false) {
+    if (refresh) {
+      const block_delta = field === 'block_count' ? delta : 0
+      const block_count = Math.max(1, this.state.block_count + block_delta)
+      const pattern = this.generatePattern(block_count)
+      this.setState({
+        ...this.state,
+        pattern,
+        [field]: Math.max(this.state[field] + delta, 1),
+      })
+    } else {
+        this.setState({
+        ...this.state,
+        [field]: Math.max(this.state[field] + delta, 1),
+      })
+    }
   }
 
-  increment(field, delta = 1) {
-    this.setState({
-      ...this.state,
-      [field]: Math.max(1, this.state[field] + delta),
-    })
-  }
+  fields() {
+    return [
+      {
+        name: 'Block Count',
+        value: this.state.block_count * 2,
+        increment: () => this.increment('block_count', 1, true),
+        decrement: () => this.increment('block_count', -1, true),
+      },
 
-  onFrameClick({ row, col, del }) {
-    const clickAt = (arr, idx) =>
-      del
-        ? arr.slice(0, idx).concat(arr.slice(idx + 1))
-        : arr.slice(0, idx + 1).concat(arr.slice(idx))
-    if (row != null) {
-      const length = this.state.pattern.length
-      const pattern = clickAt(this.state.pattern, row % length)
-      this.setState({ ...this.state, pattern: pattern })
-    }
+      {
+        name: 'Horizontal Repeats',
+        value: this.state.hrepeat,
+        increment: () => this.increment('hrepeat', 1),
+        decrement: () => this.increment('hrepeat', -1),
+      },
 
-    if (col != null) {
-      const width = this.state.pattern[0].length
-      const pattern = this.state.pattern.map(row => clickAt(row, col % width))
-      this.setState({ ...this.state, pattern: pattern })
-    }
+      {
+        name: 'Vertical Repeats',
+        value: this.state.vrepeat,
+        increment: () => this.increment('vrepeat', 1),
+        decrement: () => this.increment('vrepeat', -1),
+      },
+
+      {
+        name: 'Block Size',
+        value: this.state.block_size,
+        increment: () => this.increment('block_size', 1),
+        decrement: () => this.increment('block_size', -1),
+      },     
+    ]
   }
 
   render() {
@@ -115,50 +132,10 @@ class Motif extends React.Component {
     // f2 f4 f5 s3
 
     return (
-      <div>
-        <div>
-          <Swatch {...this.state} frameClick={pos => this.onFrameClick(pos)} />
-        </div>
-
-        <div>
-          <div>
-            Block Count:{' '}
-            <button onClick={() => this.incrementBlockCountAndRefresh(-1)}>
-              -
-            </button>{' '}
-            {this.state.block_count * 2}{' '}
-            <button onClick={() => this.incrementBlockCountAndRefresh()}>
-              +
-            </button>
-          </div>{' '}
-          <div>
-            hrepeat:{' '}
-            <button onClick={() => this.increment('hrepeat', -1)}>-</button>{' '}
-            {this.state.hrepeat}{' '}
-            <button onClick={() => this.increment('hrepeat')}>+</button>
-          </div>{' '}
-          <div>
-            vrepeat:{' '}
-            <button onClick={() => this.increment('vrepeat', -1)}>-</button>{' '}
-            {this.state.vrepeat}{' '}
-            <button onClick={() => this.increment('vrepeat')}>+</button>
-          </div>{' '}
-          <div>
-            block_size:{' '}
-            <button onClick={() => this.increment('block_size', -1)}>-</button>{' '}
-            {this.state.block_size}{' '}
-            <button onClick={() => this.increment('block_size')}>+</button>
-          </div>
-          <button
-            onClick={() =>
-              this.setState({
-                ...this.state,
-                pattern: this.generatePattern(this.state.block_count),
-              })
-            }
-          >
-            Refresh
-          </button>
+      <div style={{ display: 'flex' }}>
+        <Form fields={this.fields()} refresh={() => this.setState({ ...this.state, pattern: this.generatePattern(this.state.block_count)})}/>
+        <div style={{ flex: '1' }}>
+          <Swatch {...this.state} updatePattern={(pattern) => this.setState({...this.state, pattern})} />
         </div>
       </div>
     )
